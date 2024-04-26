@@ -155,7 +155,14 @@ public class BpmnConfigurationManager {
 		exGwNodeList.forEach(x -> {
 			BpmnExclusiveGwEvent bpmnExGwEvent = new BpmnExclusiveGwEvent(BpmnTask.EX_GW_TASK, x.getAttributeValue("id"),
 					x.getAttributeValue("name"));
-			logger.debug("End Task Id : --> "+x.getAttributeValue("id"));
+			logger.debug("Exclusive Gateway Task Id = {} ",x.getAttributeValue("id"));
+			 List<Element> outChildElList = x.getChildren("outgoing", bpmnNamespace);
+			 int outInstCount = outChildElList!=null? outChildElList.size():0;
+			 if(outInstCount>0) {
+				 outChildElList.forEach(y -> {
+					 bpmnExGwEvent.setOutgoingLink(y.getValue());
+				 });
+			 }
 			processTaskMap.put(x.getAttributeValue("id"), bpmnExGwEvent);
 
 		});

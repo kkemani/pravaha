@@ -83,7 +83,7 @@ public class BpmnProcessRuntime {
 				break;
 			
 			oneTask = executionPath.getNextNode(delegateExecution);
-			logger.debug("Next task : oneTask="+ oneTask);
+			logger.debug("Next task : oneTask={} ", oneTask);
 //			if (oneTask == null || oneTask.taskType == BpmnTask.END_TASK) {
 //				processEndOrWait = true;
 //			}

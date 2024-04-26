@@ -34,6 +34,15 @@ public class DelegateExecution {
 		
 		return null;
 	}
+	public final Map<String, Object> getBaseVariableMap() {
+		Map<String, Object> varMap = new Hashtable<>();
+		variableMap.keySet().forEach(x -> {
+			BpmnVariable oneValue = variableMap.get(x);
+			varMap.put(x, oneValue.variable);
+		});
+		
+		return varMap;
+	}
 	@Override
 	public String toString() {
 		return "DelegateExecution [variableMap=" + variableMap + ", taskStatus=" + taskStatus + "]";

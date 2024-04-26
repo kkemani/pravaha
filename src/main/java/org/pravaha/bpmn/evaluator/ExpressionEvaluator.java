@@ -1,11 +1,13 @@
 package org.pravaha.bpmn.evaluator;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
-import org.pravaha.bpmn.engine.DelegateExecution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExpressionEvaluator {
+	final static Logger logger = LoggerFactory.getLogger("ExpressionEvaluator");
 
 	public static final String EQ_EXPR = "==";
 	public static final String GEQ_EXPR = ">=";
@@ -29,23 +31,22 @@ public class ExpressionEvaluator {
 		
 	}
 	
-	public boolean evaluateComplexExpression(String expression,DelegateExecution delegateExecution ){ 
-		
+	public boolean evaluateComplexExpression(String expression,Map<String, Object> mapVar ){ 
 		if(expression.contains(XML_LT_VALUE))
 			expression=expression.replaceAll(XML_LT_VALUE, LT_EXPR);
 		else if (expression.contains(XML_GT_VALUE))
 			expression=expression.replaceAll(XML_GT_VALUE, GRT_EXPR);
 		else if(expression.contains(XML_AND_VALUE)){
-		System.out.println("Replacing "+XML_AND_VALUE +" with "+ AND_EXPR);
+		logger.debug("Replacing ",XML_AND_VALUE ," with ",AND_EXPR);
 			expression=expression.replaceAll(XML_AND_VALUE,AND_EXPR );
 		}
 		 if(expression.contains(XML_OR_VALUE))
 		{
-			System.out.println("Replacing "+XML_OR_VALUE +" with "+ OR_EXPR);
+			logger.debug("Replacing ",XML_OR_VALUE ," with ", OR_EXPR);
 			expression=expression.replaceAll(XML_OR_VALUE,OR_EXPR );
 		}
 				
-		System.out.println("Inside Complex Validation " +expression);
+		logger.debug("Inside Complex Validation = {}",expression);
 		boolean result =false;
 		Stack<String>operatorStack= new Stack<String>();
 		Stack<String>operandStack= new Stack<String>();
@@ -54,36 +55,38 @@ public class ExpressionEvaluator {
 		{
 			if(expression.charAt(i)=='(')
 			{
-				//System.out.println("Got (");
 				operandStack.push(O_PARENTHESIS);
-				//System.out.println("Operand Stack size "+operandStack.size());
+				logger.debug("Operand Stack size "+operandStack.size());
 			}
 			else if(expression.charAt(i)== '$')
 			{
-				System.out.println("Got $ ");
+				logger.debug("Got $ ");
 				String subExpression=expression.substring(i, expression.indexOf(")", i));
-				
-				boolean innerExpRes=evaluateExpression(subExpression, delegateExecution);
-				System.out.println("SubExpression "+subExpression +" Result : -"+innerExpRes);
-				operandStack.pop();
-				//System.out.println("Operand Stack size before "+operandStack.size());
+				boolean innerExpRes=evaluateExpression(subExpression, mapVar);
+				logger.debug("SubExpression "+subExpression +" Result : "+innerExpRes);
+				if(!operandStack.isEmpty()) {
+					operandStack.pop();					
+				}
+				//logger.debug("Operand Stack size before "+operandStack.size());
 				operandStack.push(String.valueOf(innerExpRes));
-				//System.out.println("Operand Stack size after"+operandStack.size());
-				System.out.println("value of i ="+i);
+				//logger.debug("Operand Stack size after"+operandStack.size());
+				logger.debug("value of i ="+i);
 				i= expression.indexOf(")", i);
-				System.out.println("Increased value of i ="+i);
+				logger.debug("Increased value of i ="+i);
+				if(innerExpRes)
+					result = true;
 			}
 			else if(expression.charAt(i)=='&')
 			{
 				operatorStack.push(AND_EXPR);
-				System.out.println("Got AND and Operator Stack  size "+operatorStack.size());
+				logger.debug("Got AND and Operator Stack  size "+operatorStack.size());
 				
 				
 			}
 			else if(expression.charAt(i)== '|')
 			{
 				operatorStack.push(OR_EXPR);
-				System.out.println("Got OR and Operator Stack  size "+operatorStack.size());
+				logger.debug("Got OR and Operator Stack  size "+operatorStack.size());
 			}
 			else if(expression.charAt(i)==')')
 			{
@@ -133,8 +136,8 @@ public class ExpressionEvaluator {
 				else {
 				 operandExpres1= getbooleanExpressionRes(operandStack.pop());
 				
-				//System.out.println("Opertor Stack Content "+operatorStack.peek());
-				//System.out.println("operatorStack Content "+operatorStack.peek());
+				//logger.debug("Opertor Stack Content "+operatorStack.peek());
+				//logger.debug("operatorStack Content "+operatorStack.peek());
 				
 					operatorstcVal= getOperator(operatorStack);
 					operatorStack.pop();
@@ -220,10 +223,10 @@ public class ExpressionEvaluator {
 		return res;
 		
 	}
-	public boolean evaluateExpression(String expression, DelegateExecution delegateExecution){
+	public boolean evaluateExpression(String expression, Map<String, Object> mapVar){
 		
 		if(expression.contains(C_PARENTHESIS)||expression.contains(O_PARENTHESIS) || expression.contains(XML_AND_VALUE)||expression.contains(XML_OR_VALUE))
-			return evaluateComplexExpression(expression, delegateExecution);
+			return evaluateComplexExpression(expression, mapVar);
 		else	
 		{
 		if(expression.contains(XML_LT_VALUE))
@@ -239,13 +242,13 @@ public class ExpressionEvaluator {
 			//	> < (only for numerals- Int, Float, Long)
 			//	!= ==  (for all - String, Int, float, long, objects)
 		
-		return evaluateOperator(expression, exprOperator, delegateExecution);
+		return evaluateOperator(expression, exprOperator, mapVar);
 		}
 	}
 	
 	// 
 	private boolean evaluateOperator(String expression,String exprOperator, 
-			DelegateExecution delegateExecution) {
+	 Map<String, Object> mapVar) {
 		// TODO Auto-generated method stub
 		Object lhopValue = null;
 		Object rhopValue = null;
@@ -253,7 +256,8 @@ public class ExpressionEvaluator {
 		String lhop = getLHOp(expression, exprOperator);
 		if(lhop.contains("$")){
 			lhop = lhop.replace("$", "").trim();
-			lhopValue = delegateExecution.getVariable(lhop);
+//			lhopValue = delegateExecution.getVariable(lhop);
+			lhopValue = mapVar.get(lhop);
 		}	
 		else if(lhop.contains("'")){
 			lhopValue =  lhop.replaceAll("'", "").trim();
@@ -263,7 +267,8 @@ public class ExpressionEvaluator {
 		if(rhop.contains("$")){
 			rhop = rhop.replace("$", "").trim();
 			rhopVar = true;
-			rhopValue = delegateExecution.getVariable(rhop);
+//			rhopValue = delegateExecution.getVariable(rhop);
+			rhopValue = mapVar.get(rhop);
 		}	
 		else if(rhop.contains("'")){
 			rhopValue =  rhop.replaceAll("'", "").trim();
@@ -286,7 +291,7 @@ public class ExpressionEvaluator {
 
 				Long lValue = (Long) lhopValue;
 				int compareValue = lValue.compareTo((Long)rhopValue);
-				//System.out.println(" compareValue="+ compareValue);
+				//logger.debug(" compareValue="+ compareValue);
 				return applyOperation(compareValue, exprOperator);
 			}catch(Exception e){
 				return false;
@@ -313,8 +318,14 @@ public class ExpressionEvaluator {
 			// compare Long value on LHS with long on RHS 
 			try{
 				
-				if(!rhopVar && rhop instanceof String)
+				if(!rhopVar && rhop instanceof String) {
+					if(rhop.contains("$")) {
+						rhop = rhop.replaceAll("$", "").trim();
+					} else if(rhop.contains("'")) {
+						rhop = rhop.replaceAll("'", "").trim();
+					}
 					rhopValue = new Integer(rhop);
+				}
 				
 				Integer lValue = (Integer) lhopValue;
 				int compareValue = lValue.compareTo((Integer)rhopValue);
@@ -412,4 +423,6 @@ public class ExpressionEvaluator {
 		return NOOP;
 	}
 }
+
+
 

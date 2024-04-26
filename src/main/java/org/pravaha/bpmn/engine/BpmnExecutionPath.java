@@ -2,10 +2,6 @@ package org.pravaha.bpmn.engine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import javax.security.auth.x500.X500Principal;
-import javax.swing.text.StyledEditorKit.ForegroundAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,49 +45,68 @@ public class BpmnExecutionPath {
 
 	public BpmnTask getNextNode(DelegateExecution delegateExecution) {
 		BpmnTask bpmnTask = null;
-		if(this.currentTask instanceof BpmnStartEvent) {
+		if (this.currentTask instanceof BpmnStartEvent) {
 			String outgoingId = this.currentTask.getTopOutgoingLink();
-			if(null!=outgoingId) {
+			System.out.println("OutId : "+outgoingId); 
+			if (null != outgoingId) {
 				bpmnTask = getNodeFromLink(outgoingId);
 				this.currentTask = bpmnTask;
 			}
 			return bpmnTask;
-		}else if(this.currentTask instanceof BpmnExclusiveGwEvent) {
+		} else if (this.currentTask instanceof BpmnExclusiveGwEvent) { // for exclusive gateways
 			List<String> outIds = this.currentTask.getOutgoingLinks();
+			
 			List<BpmnSequenceFlow> seqFlows = new ArrayList<BpmnSequenceFlow>();
 			BpmnSequenceFlow noExpSeqFlow = null;
 			for (String oneOutId : outIds) {
 				BpmnSequenceFlow oneBpmnSeqFlow = new BpmnSequenceFlow();
 				oneBpmnSeqFlow = bpmnCfgManager.getBpmnSequenceFlow(oneOutId);
-				if(null!=oneBpmnSeqFlow) {
-					if(null!=oneBpmnSeqFlow.getExpression()) {
+				if (null != oneBpmnSeqFlow) {
+					if (null != oneBpmnSeqFlow.getExpression()) {
 						seqFlows.add(oneBpmnSeqFlow);
-					} else 
+					} else
 						noExpSeqFlow = oneBpmnSeqFlow;
 				} else
 					logger.info("BpmnExecutionPath::getNextNode:oneBpmnSeqFlow is null...");
 			}
-			
-			if(!seqFlows.isEmpty()) {
+			if (!seqFlows.isEmpty()) {
+				boolean res = false;
 				// Expression Evaluator
 				ExpressionEvaluator exEval = new ExpressionEvaluator();
-				for(BpmnSequenceFlow oneSeqflow: seqFlows) {
-					boolean res = exEval.evaluateComplexExpression(oneSeqflow.getExpression().getExpression(),delegateExecution);
-					if(res) {
-						logger.info("Expression ",oneSeqflow.getExpression().getExpression()," is correctly Evaluated.");
+
+				for (BpmnSequenceFlow oneSeqflow : seqFlows) {
+					res = exEval.evaluateComplexExpression(oneSeqflow.getExpression().getExpression(),
+							delegateExecution.getBaseVariableMap());
+					logger.debug("Expression = {} res={}", oneSeqflow.getExpression().getExpression(), res);
+					if (res) {
+						logger.debug("Expression = {}", oneSeqflow.getExpression().getExpression(),
+								" is correctly Evaluated.");
+						this.currentTask = getNodeFromLink(oneSeqflow.linkId);
+						System.out.println("Current Task : "+this.currentTask);
 						return getNodeFromLink(oneSeqflow.linkId);
 					}
+
 				}
-				
-			}else{
+				if (!res) {
+					logger.debug("ExpEval res is false - returning noExp Link={}", noExpSeqFlow.getLinkId());
+					this.currentTask = getNodeFromLink(noExpSeqFlow.linkId);
+					System.out.println("Current Task : "+this.currentTask);
+					return getNodeFromLink(noExpSeqFlow.getLinkId());
+				}
+			} else {
+				logger.debug("List of BpmnSequenceFlow has no expression - returning noExp Link={}",
+						noExpSeqFlow.getLinkId());
+				this.currentTask = getNodeFromLink(noExpSeqFlow.linkId);
+				System.out.println("Current Task : "+this.currentTask);
 				return getNodeFromLink(noExpSeqFlow.getLinkId());
 			}
-		} 
-		else {
-			// get current task list of outgoing links - will be implemented later as API will chaneg to list
+		} else { // other tasks
+					// get current task list of outgoing links - will be implemented later as API
+					// will change to list
 			String outgoingId = this.currentTask.getTopOutgoingLink();
-			logger.debug("getNextNode outgoingId={}  ",outgoingId);
-			if(null!=outgoingId) {
+			System.out.println("Outgoing Id : "+outgoingId);
+			logger.debug("getNextNode outgoingId={}  ", outgoingId);
+			if (null != outgoingId) {
 				bpmnTask = getNodeFromLink(outgoingId);
 				this.currentTask = bpmnTask;
 			}
