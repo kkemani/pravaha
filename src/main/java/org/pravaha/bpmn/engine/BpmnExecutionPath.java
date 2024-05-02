@@ -5,9 +5,13 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import lombok.Data;
+
 import org.pravaha.bpmn.configuration.BpmnConfigurationManager;
 import org.pravaha.bpmn.evaluator.ExpressionEvaluator;
 
+@Data
 public class BpmnExecutionPath {
 	final static Logger logger = LoggerFactory.getLogger("");
 
@@ -21,22 +25,6 @@ public class BpmnExecutionPath {
 		bpmnCfgManager.initializeProcessConfiguration();
 	}
 	
-	public BpmnConfigurationManager getBpmnCfgManager() {
-		return bpmnCfgManager;
-	}
-
-	public void setBpmnCfgManager(BpmnConfigurationManager bpmnCfgManager) {
-		this.bpmnCfgManager = bpmnCfgManager;
-	}
-	
-
-	public BpmnTask getCurrentTask() {
-		return currentTask;
-	}
-	
-	public void setCurrentTask(BpmnTask currentTask) {
-		this.currentTask = currentTask;
-	}
 
 	public BpmnTask getStartTask() {
 		this.currentTask = bpmnCfgManager.getStartTask();

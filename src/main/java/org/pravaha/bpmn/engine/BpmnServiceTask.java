@@ -6,6 +6,9 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.Data;
+
+@Data
 public class BpmnServiceTask extends BpmnTask implements TaskExecution {
 	
 	final static Logger logger = LoggerFactory.getLogger("BpmnServiceTask");
@@ -17,21 +20,7 @@ public class BpmnServiceTask extends BpmnTask implements TaskExecution {
 		super(type, taskId, name);
 	}
 
-	public String getTopicName() {
-		return topicName;
-	}
 
-	public void setTopicName(String topicName) {
-		this.topicName = topicName;
-	}
-
-	public String getClassName() {
-		return className;
-	}
-
-	public void setClassName(String className) {
-		this.className = className;
-	}
 
 	@Override
 	public void execute(DelegateExecution delExec)throws BpmnException {

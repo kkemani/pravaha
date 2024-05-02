@@ -7,7 +7,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.Data;
 
+@Data
 public class BpmnProcessRuntime {
 	final static Logger logger = LoggerFactory.getLogger("BpmnProcessRuntime");
 	
@@ -62,13 +64,6 @@ public class BpmnProcessRuntime {
 		delegateExecution.setVariables(processVariables);
 	}
 
-	public String getPid() {
-		return pid;
-	}
-
-	public void setPid(String pid) {
-		this.pid = pid;
-	}
 
 //	private void startProcess() throws BpmnException {
 	public void startProcess() throws BpmnException {

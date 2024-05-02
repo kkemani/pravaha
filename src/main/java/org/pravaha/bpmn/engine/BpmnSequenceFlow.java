@@ -1,9 +1,11 @@
 package org.pravaha.bpmn.engine;
 
+import lombok.Data;
+
+@Data
 public class BpmnSequenceFlow {
 
 	protected String linkId;
-
 	protected String name;
 	protected String source;
 	protected String target;
@@ -32,44 +34,5 @@ public class BpmnSequenceFlow {
 		expression.expression = expressionValue;
 	}
 
-	public String getLinkId() {
-		return linkId;
-	}
-
-	public void setLinkId(String linkId) {
-		this.linkId = linkId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	public String getTarget() {
-		return target;
-	}
-
-	public void setTarget(String target) {
-		this.target = target;
-	}
-
-	public BpmnConditionalExpression getExpression() {
-		return expression;
-	}
-
-	public void setExpression(BpmnConditionalExpression expression) {
-		this.expression = expression;
-	}
 
 }
