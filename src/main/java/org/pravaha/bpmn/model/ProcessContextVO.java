@@ -1,31 +1,21 @@
-package org.pravaha.bpmn.domain;
+package org.pravaha.bpmn.model;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Calendar;
+import java.util.HashMap;
 
-@Entity
-@Table(name = "Tbl_process_context")
 @Data
 public class ProcessContextVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @Column(name = "Process_id")
     private String Pid;
 
-    @Column(name = "Process_context")
-    private byte[] processContext;
+    private HashMap<String, Object> processContext;
 
-    @Column(name = "Create_Date")
     private Calendar createDate;
 
-    @Column(name = "Last_update_date")
     private Calendar lastUpdateDate;
     
     public ProcessContextVO() {
