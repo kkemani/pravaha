@@ -1,6 +1,8 @@
 package org.pravaha.bpmn.dataaccess;
 
+import java.sql.Date;
 import java.util.Calendar;
+import java.util.List;
 
 import org.pravaha.bpmn.model.ProcessRuntimeVO;
 
@@ -20,6 +22,10 @@ public class ProcessRuntimeDao {
 	
 	public void updateProcessRuntime(Calendar endTime, Integer status) {
 		
+	}
+	
+	public List<ProcessRuntimeVO> getProcessRuntimeByDate(Date startDate, Date endDate) {
+		return null;
 	}
 	
 }

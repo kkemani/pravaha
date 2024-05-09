@@ -2,7 +2,7 @@ package org.pravaha.bpmn.model;
 
 
 import java.io.Serializable;
-import java.util.Calendar;
+import java.util.Date;
 
 import lombok.Data;
 
@@ -14,15 +14,15 @@ public class ProcessRuntimeVO implements Serializable{
 	
 	private String processId;
 	
+	private String businessKey;
+	
 	private String processName;
 	
-	
-	private Calendar startDate;
+	private Date startDate;
 
+	private Date lastUpdateDate;
 
-	private Calendar lastUpdateDate;
-
-	private Calendar endDate;
+	private Date endDate;
 
 	private int status;
 
