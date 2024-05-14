@@ -2,7 +2,7 @@ package org.pravaha.bpmn.model;
 
 import java.io.Serializable;
 import java.util.Calendar;
-
+import java.util.Date;
 
 import lombok.Data;
 
@@ -21,7 +21,7 @@ public class ProcessEventWatchVO implements Serializable {
 	
 	private String processId;
 	
-	private Calendar createDate;
+	private Date createDate;
 	
 	private int status;
 	
