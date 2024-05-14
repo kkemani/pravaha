@@ -19,7 +19,7 @@ public class ProcessEventWatchVO implements Serializable {
 	
 	private String relatedId;
 	
-	private String Pid;
+	private String processId;
 	
 	private Calendar createDate;
 	
@@ -32,7 +32,7 @@ public class ProcessEventWatchVO implements Serializable {
 	public String toString()
 	{
 		StringBuffer strBuffer= new StringBuffer();
-		strBuffer.append(this.id +" || " +this.Pid +" => "+" || "+this.correlationId+"||"+this.eventType+" || "+this.relatedId+"||"+this.status);
+		strBuffer.append(this.id +" || " +this.processId +" => "+" || "+this.correlationId+"||"+this.eventType+" || "+this.relatedId+"||"+this.status);
 		return strBuffer.toString();
 	}
 }

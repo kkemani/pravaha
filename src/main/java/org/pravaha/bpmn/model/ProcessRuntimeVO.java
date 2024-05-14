@@ -6,8 +6,6 @@ import java.util.Date;
 
 import lombok.Data;
 
-
-
 @Data
 public class ProcessRuntimeVO implements Serializable{
 	private static final long serialVersionUID = 1L;

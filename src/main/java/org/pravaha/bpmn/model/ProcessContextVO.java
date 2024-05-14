@@ -10,7 +10,7 @@ import java.util.HashMap;
 public class ProcessContextVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String Pid;
+    private String processId;
 
     private HashMap<String, Object> processContext;
 
@@ -25,7 +25,7 @@ public class ProcessContextVO implements Serializable {
 	public String toString()
 	{
 		StringBuffer strBuffer= new StringBuffer();
-		strBuffer.append("Process Id = >"+this.Pid +"||"+this.processContext);
+		strBuffer.append("Process Id = >"+this.processId +"||"+this.processContext);
 		return strBuffer.toString();
 	}
 }
