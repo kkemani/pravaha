@@ -10,6 +10,8 @@ public class ProcessRuntimeSearchVO {
 	
 	private Date endDate;
 	
+	private String status;
+	
 	public ProcessRuntimeSearchVO() {
 		
 	}
