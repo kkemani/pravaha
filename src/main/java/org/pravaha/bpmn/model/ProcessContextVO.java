@@ -12,7 +12,7 @@ public class ProcessContextVO implements Serializable {
 
     private String processId;
 
-    private HashMap<String, Object> processContext;
+    private byte[] processContext;
 
     private Calendar createDate;
 

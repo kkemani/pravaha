@@ -3,6 +3,9 @@ package org.pravaha.bpmn.engine;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+
+@Data
 public class BpmnTask {
 
 	public static int START_TASK = 100;
@@ -10,6 +13,7 @@ public class BpmnTask {
 	public static int SVC_EXT_TASK = 102;
 	public static int SVC_DELEGATE_TASK = 103;
 	public static int EX_GW_TASK = 104;
+	public static int WAIT_TASK = 105;
 	public static int END_TASK = 120;
 	List<String> outgoingLinks = null;
 	

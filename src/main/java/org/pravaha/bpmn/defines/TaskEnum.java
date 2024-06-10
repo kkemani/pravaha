@@ -8,6 +8,7 @@ public enum TaskEnum {
     BPMN_START_EV_EL("startEvent"),
     BPMN_SEQ_FLOW_EL("sequenceFlow"),
     BPMN_END_EV_EL("endEvent"),
+    BPMN_WAIT_EV_EL("intermediateCatchEvent"),
     BPMN_EX_GW_EV_EL("exclusiveGateway");
 
     private final String value;

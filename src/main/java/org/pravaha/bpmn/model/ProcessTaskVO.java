@@ -8,11 +8,11 @@ import lombok.Data;
 public class ProcessTaskVO implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private long task_id;
+	private long taskId;
 
 	private String processId;
 
-	private String taskName;
+	private String taskName; //bpmn:serviceTask id="Activity_1clykiy
 
 	private Calendar startDate;
 
@@ -22,9 +22,9 @@ public class ProcessTaskVO implements java.io.Serializable {
 
 	private String parentPid;
 
-	private int task_type;
+	private int taskType; // 1 is internal and 2 is external
 
-	private String description;
+	private String description; // name 
 
 	public ProcessTaskVO() {
 		
@@ -32,8 +32,8 @@ public class ProcessTaskVO implements java.io.Serializable {
 
 	public String toString() {
 		StringBuffer strbuffer = new StringBuffer();
-		strbuffer.append("task_id -" + this.task_id).append("Parent Pid = " + this.parentPid)
-				.append("Task Type = " + this.task_type).append("Description -" + this.description)
+		strbuffer.append("taskId -" + this.taskId).append("Parent Pid = " + this.parentPid)
+				.append("Task Type = " + this.taskType).append("Description -" + this.description)
 				.append("Task Status" + this.taskStatus).append("Task Name" + this.taskName);
 		return strbuffer.toString();
 	}

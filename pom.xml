@@ -52,7 +52,11 @@
 			<version>1.18.32</version> <!-- Update to the latest version -->
 			<scope>provided</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>pravaha-service</groupId>
+			<artifactId>pravaha-service</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 	<build>

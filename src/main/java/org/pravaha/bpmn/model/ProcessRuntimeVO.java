@@ -28,6 +28,16 @@ public class ProcessRuntimeVO implements Serializable{
 	
 	private String processVer;
 
+	@Override
+	public String toString() {
+		return "ProcessRuntimeVO [processId=" + processId + ", businessKey=" + businessKey + ", processName="
+				+ processName + ", startDate=" + startDate + ", lastUpdateDate=" + lastUpdateDate + ", endDate="
+				+ endDate + ", status=" + status + ", parentProcessId=" + parentProcessId + ", processVer=" + processVer
+				+ "]";
+	}
+	
+	
+
 
 	
 }

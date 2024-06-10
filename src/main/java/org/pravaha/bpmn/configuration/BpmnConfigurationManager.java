@@ -14,6 +14,7 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.pravaha.bpmn.defines.TaskEnum;
+import org.pravaha.bpmn.engine.BpmnIntermediateCatchEvent;
 import org.pravaha.bpmn.engine.BpmnEndEvent;
 import org.pravaha.bpmn.engine.BpmnExclusiveGwEvent;
 import org.pravaha.bpmn.engine.BpmnSequenceFlow;
@@ -22,9 +23,9 @@ import org.pravaha.bpmn.engine.BpmnStartEvent;
 import org.pravaha.bpmn.engine.BpmnTask;
 
 public class BpmnConfigurationManager {
-	
+
 	final static Logger logger = LoggerFactory.getLogger("BpmnLogger");
-	
+
 	protected String bpmFileName = null;
 
 	protected Document smxProcessConfig = null;
@@ -138,55 +139,77 @@ public class BpmnConfigurationManager {
 		List<Element> serviceTaskList = processDefinition.getChildren(TaskEnum.BPMN_SVC_TASK_EL.getValue(),
 				bpmnNamespace);
 		loadServiceTasks(serviceTaskList);
-		List<Element> endNodeList = processDefinition.getChildren(TaskEnum.BPMN_END_EV_EL.getValue(),
-				bpmnNamespace);
+		List<Element> endNodeList = processDefinition.getChildren(TaskEnum.BPMN_END_EV_EL.getValue(), bpmnNamespace);
 		loadEndTasks(endNodeList);
-		List<Element> exGwNodeList = processDefinition.getChildren(TaskEnum.BPMN_EX_GW_EV_EL.getValue(),
-				bpmnNamespace);
+		List<Element> exGwNodeList = processDefinition.getChildren(TaskEnum.BPMN_EX_GW_EV_EL.getValue(), bpmnNamespace);
 		loadExGwTasks(exGwNodeList);
-	
+		List<Element> evWatchNodeList = processDefinition.getChildren(TaskEnum.BPMN_WAIT_EV_EL.getValue(),
+				bpmnNamespace);
+		loadWaitEvWatchTasks(evWatchNodeList);
+
+
 	}
-	
+
+	private void loadWaitEvWatchTasks(List<Element> evWatchNodeList) {
+
+		if (evWatchNodeList == null)
+			return;
+
+		evWatchNodeList.forEach(x -> {
+			BpmnIntermediateCatchEvent bpmnConditionalIntermediateCatch = new BpmnIntermediateCatchEvent(
+					BpmnTask.WAIT_TASK, x.getAttributeValue("id"), x.getAttributeValue("name"));
+			logger.debug("Intermediate Gateway Task Id = {} ", x.getAttributeValue("id"));
+			List<Element> outChildElList = x.getChildren("outgoing", bpmnNamespace);
+			int outInstCount = outChildElList != null ? outChildElList.size() : 0;
+			if (outInstCount > 0) {
+				outChildElList.forEach(y -> {
+					bpmnConditionalIntermediateCatch.setOutgoingLink(y.getValue());
+				});
+			}
+			processTaskMap.put(x.getAttributeValue("id"), bpmnConditionalIntermediateCatch);
+		});
+
+	}
+
 	private void loadExGwTasks(List<Element> exGwNodeList) {
 		// TODO Auto-generated method stub
 		if (exGwNodeList == null)
 			return;
-		
+
 		exGwNodeList.forEach(x -> {
-			BpmnExclusiveGwEvent bpmnExGwEvent = new BpmnExclusiveGwEvent(BpmnTask.EX_GW_TASK, x.getAttributeValue("id"),
-					x.getAttributeValue("name"));
-			logger.debug("Exclusive Gateway Task Id = {} ",x.getAttributeValue("id"));
-			 List<Element> outChildElList = x.getChildren("outgoing", bpmnNamespace);
-			 int outInstCount = outChildElList!=null? outChildElList.size():0;
-			 if(outInstCount>0) {
-				 outChildElList.forEach(y -> {
-					 bpmnExGwEvent.setOutgoingLink(y.getValue());
-				 });
-			 }
+			BpmnExclusiveGwEvent bpmnExGwEvent = new BpmnExclusiveGwEvent(BpmnTask.EX_GW_TASK,
+					x.getAttributeValue("id"), x.getAttributeValue("name"));
+			logger.debug("Exclusive Gateway Task Id = {} ", x.getAttributeValue("id"));
+			List<Element> outChildElList = x.getChildren("outgoing", bpmnNamespace);
+			int outInstCount = outChildElList != null ? outChildElList.size() : 0;
+			if (outInstCount > 0) {
+				outChildElList.forEach(y -> {
+					bpmnExGwEvent.setOutgoingLink(y.getValue());
+				});
+			}
 			processTaskMap.put(x.getAttributeValue("id"), bpmnExGwEvent);
 
 		});
 	}
-	
+
 	private void loadEndTasks(List<Element> endNodeList) {
 		// TODO Auto-generated method stub
 		if (endNodeList == null)
 			return;
-		
+
 		endNodeList.forEach(x -> {
 			BpmnEndEvent bpmnEndEvent = new BpmnEndEvent(BpmnTask.END_TASK, x.getAttributeValue("id"),
 					x.getAttributeValue("name"));
-			logger.debug("End Task Id : --> "+x.getAttributeValue("id"));
+			logger.debug("End Task Id : --> " + x.getAttributeValue("id"));
 			processTaskMap.put(x.getAttributeValue("id"), bpmnEndEvent);
 
 		});
 	}
-	
 
 	private void loadServiceTasks(List<Element> serviceTaskList) {
 		if (serviceTaskList == null)
 			return;
-		
+
 		serviceTaskList.forEach(x -> {
 			String type = x.getAttributeValue("type");
 			int taskType = type == null ? BpmnTask.SVC_DELEGATE_TASK : BpmnTask.SVC_EXT_TASK;
@@ -202,7 +225,7 @@ public class BpmnConfigurationManager {
 				bpmnServiceTask.setOutgoingLink(outgoingEl.getValue());
 			processTaskMap.put(x.getAttributeValue("id"), bpmnServiceTask);
 		});
-		
+
 	}
 
 	public BpmnTask getNextNode(String id) {
@@ -237,7 +260,7 @@ public class BpmnConfigurationManager {
 		BpmnSequenceFlow bpmnSeqFlow = seqFlowMap.get(outLinkId);
 		return bpmnSeqFlow != null ? bpmnSeqFlow.getTarget() : null;
 	}
-	
+
 	public BpmnSequenceFlow getBpmnSequenceFlow(String outLinkId) {
 		BpmnSequenceFlow bpmnSeqFlow = seqFlowMap.get(outLinkId);
 		return bpmnSeqFlow;

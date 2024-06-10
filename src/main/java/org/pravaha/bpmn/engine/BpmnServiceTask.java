@@ -24,9 +24,11 @@ public class BpmnServiceTask extends BpmnTask implements TaskExecution {
 
 	@Override
 	public void execute(DelegateExecution delExec)throws BpmnException {
+		System.out.println("className---> "+className);
 		if(className!=null) {
 			BpmnServiceTask oneTask = getTaskObject();
 			logger.debug("Object returned ="+ oneTask);
+			System.out.println("Object Returned : "+oneTask);
 			int argSize = 1;
 			try {
 			Class [] methodDefArgList = new Class[argSize];
@@ -64,4 +66,7 @@ public class BpmnServiceTask extends BpmnTask implements TaskExecution {
 		}
 		return null;
 	}
+	
+
+
 }

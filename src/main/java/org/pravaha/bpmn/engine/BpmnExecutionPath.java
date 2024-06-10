@@ -13,7 +13,7 @@ import org.pravaha.bpmn.evaluator.ExpressionEvaluator;
 
 @Data
 public class BpmnExecutionPath {
-	final static Logger logger = LoggerFactory.getLogger("");
+	final static Logger logger = LoggerFactory.getLogger("BpmnExecutionPath");
 
 	protected BpmnConfigurationManager bpmnCfgManager;
 	protected BpmnTask currentTask;
