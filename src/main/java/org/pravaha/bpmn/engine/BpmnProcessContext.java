@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,22 +23,22 @@ public class BpmnProcessContext {
 	protected List<String> transientVars = null;
 	protected HashMap<String, Object> transientVariables = null;
 	protected String pid = null;
-	protected Calendar createDate = null;
-	protected Calendar lastUpdateDate = null;
+	protected Date createDate = null;
+	protected Date lastUpdateDate = null;
 
-	public Calendar getLastUpdateDate() {
+	public Date getLastUpdateDate() {
 		return lastUpdateDate;
 	}
 
-	public void setLastUpdateDate(Calendar lastUpdateDate) {
+	public void setLastUpdateDate(Date lastUpdateDate) {
 		this.lastUpdateDate = lastUpdateDate;
 	}
 
-	public Calendar getCreateDate() {
+	public Date getCreateDate() {
 		return createDate;
 	}
 
-	public void setCreateDate(Calendar createDate) {
+	public void setCreateDate(Date createDate) {
 		this.createDate = createDate;
 	}
 
@@ -56,7 +57,7 @@ public class BpmnProcessContext {
 		procVariables = new HashMap<String, Object>();
 		transientVars = new ArrayList<>();
 		transientVariables = new HashMap<>();
-		this.createDate = Calendar.getInstance();
+		this.createDate = Calendar.getInstance().getTime();
 	}
 
 	public BpmnProcessContext(Element commitVar) {
@@ -135,7 +136,7 @@ public class BpmnProcessContext {
 			oos.flush();
 			oos.close();
 			contextVO.setProcessContext(boas.toByteArray());
-			contextVO.setLastUpdateDate(Calendar.getInstance());
+			contextVO.setLastUpdateDate(Calendar.getInstance().getTime());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 
@@ -148,7 +149,7 @@ public class BpmnProcessContext {
 		ProcessContextVO processContextVO = new ProcessContextVO();
 		processContextVO.setProcessId(this.pid);
 		processContextVO.setCreateDate(this.createDate);
-		processContextVO.setLastUpdateDate(Calendar.getInstance());
+		processContextVO.setLastUpdateDate(Calendar.getInstance().getTime());
 
 		try {
 			ByteArrayOutputStream boas = new ByteArrayOutputStream();

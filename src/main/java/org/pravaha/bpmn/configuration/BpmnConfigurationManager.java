@@ -194,6 +194,8 @@ public class BpmnConfigurationManager {
 
 	private void loadEndTasks(List<Element> endNodeList) {
 		// TODO Auto-generated method stub
+		
+		System.out.println("In end event :::");
 		if (endNodeList == null)
 			return;
 
@@ -229,8 +231,10 @@ public class BpmnConfigurationManager {
 	}
 
 	public BpmnTask getNextNode(String id) {
+		System.out.println("In getNextNode ----");
 		// check service Tasks
 		BpmnTask bpmnTask = processTaskMap.get(id);
+		System.out.println("bpmnTask != null :::::: "+bpmnTask != null);
 		if (bpmnTask != null)
 			return bpmnTask;
 

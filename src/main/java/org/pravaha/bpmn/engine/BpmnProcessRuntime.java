@@ -1,10 +1,14 @@
 package org.pravaha.bpmn.engine;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.jdom2.Namespace;
 
@@ -12,7 +16,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.pravaha.bpmn.dataaccess.BpmnProcessDao;
+import org.pravaha.bpmn.defines.BpmnProcessEnum;
 import org.pravaha.bpmn.defines.TaskEnum;
+import org.pravaha.bpmn.model.ProcessContextVO;
 import org.pravaha.bpmn.model.ProcessEventWatchVO;
 import org.pravaha.bpmn.model.ProcessRuntimeVO;
 import org.pravaha.bpmn.model.ProcessTaskVO;
@@ -85,7 +91,7 @@ public class BpmnProcessRuntime {
 		delegateExecution.setVariables(processVariables);
 	}
 
-	public void startProcess() throws BpmnException {
+	public void startProcess() throws BpmnException{
 		// save a record for RuntimeVO
 		saveProcessRunTime(this.bpmnProcessDao);
 		// iterate through the links and move to the next node
@@ -94,14 +100,16 @@ public class BpmnProcessRuntime {
 		boolean processEndOrWait = false;
 		while (!processEndOrWait) {
 			processEndOrWait = processOneNode(oneTask);
-
 			if (processEndOrWait)
 				break;
 
 			oneTask = executionPath.getNextNode(delegateExecution);
-			if (oneTask == null || oneTask.taskType == BpmnTask.END_TASK) {
-				processEndOrWait = true;
-			}
+		}
+		try {
+			saveBpmnProcessContext(this.bpmnProcessDao);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		/*
@@ -111,6 +119,7 @@ public class BpmnProcessRuntime {
 		 */
 
 	}
+
 
 	private boolean processOneNode(BpmnTask oneTask) throws BpmnException {
 		if (oneTask instanceof BpmnStartEvent) {
@@ -124,7 +133,7 @@ public class BpmnProcessRuntime {
 		} else if (oneTask instanceof BpmnExclusiveGwEvent) {
 			return false;
 		} else if (oneTask instanceof BpmnIntermediateCatchEvent) {
-//			saveEventWatchDetails(oneTask, this.bpmnProcessDao);
+			saveEventWatchDetails(oneTask, this.bpmnProcessDao);
 //			System.out.println("BpmnProcessRuntime::processOneNode:Found Intemediate Catch Event - stopping flow");
 			logger.debug("BpmnProcessRuntime::processOneNode:Found Intemediate Catch Event - stopping flow");
 			return true;
@@ -132,6 +141,7 @@ public class BpmnProcessRuntime {
 //			System.out.println("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			logger.debug("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			// save into runtime - with endDate
+			savePRTimeWithEndDate(this.processId,this.bpmnProcessDao);
 			return true;
 		}
 		return true;
@@ -141,8 +151,8 @@ public class BpmnProcessRuntime {
 		ProcessTaskVO vo = new ProcessTaskVO();
 		vo.setProcessId(this.processId);
 		vo.setTaskName(oneTask.getTaskId());
-		vo.setTaskStatus(1);
-		vo.setTaskType(1);
+		vo.setTaskStatus((int)BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
+		vo.setTaskType((int)BpmnProcessEnum.PROCESS_INTERNAL_TASK.getValue());
 		vo.setDescription(oneTask.getTaskName());
 		if(bpmnProcessDao!=null)
 			bpmnProcessDao.saveProcessTask(vo);
@@ -158,13 +168,9 @@ public class BpmnProcessRuntime {
 		String version = mapObj.get("Version").toString();
 		
 		vo.setProcessName(processName);
-		vo.setBusinessKey("seygen123");
-		vo.setStatus(1);
-		if(version!=null)
-			vo.setProcessVer(version);
-		else
-			vo.setProcessVer("1");
-		vo.setBusinessKey(null);
+//		vo.setBusinessKey("seygen123"); // from where we are getting or where we are generating
+		vo.setStatus((int)BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
+		vo.setProcessVer(version);
 		if(bpmnProcessDao!=null)
 			vo = bpmnProcessDao.saveProcessRuntime(vo);
 		this.processId = vo.getProcessId();
@@ -173,23 +179,42 @@ public class BpmnProcessRuntime {
 	
 	public void savePRTimeWithEndDate(String processId, BpmnProcessDao bpmnProcessDao) {
 		ProcessRuntimeVO vo = new ProcessRuntimeVO();
-		vo = bpmnProcessDao.saveProcessRuntime(vo);
+		vo = bpmnProcessDao.getProcessRunTime(processId);
 		vo.setEndDate(Calendar.getInstance().getTime());
 		if(bpmnProcessDao!=null)
 			vo = bpmnProcessDao.saveProcessRuntime(vo);
 	}
 	
-//	public void saveEventWatchDetails(BpmnTask oneTask, BpmnProcessDao bpmnProcessDao) {
-//		ProcessEventWatchVO vo = new ProcessEventWatchVO();
-//		
-//		vo.setEventType();
-//		vo.setCorrelationId(this.businessKey);
-//		vo.setRelatedId();
-//		vo.setProcessId(this.processId);
-//		vo.setStatus(1);
-//		if(bpmnProcessDao!=null)	
-//			bpmnProcessDao.saveProcessEventWatch(vo);
-//	}
+	public void saveEventWatchDetails(BpmnTask oneTask, BpmnProcessDao bpmnProcessDao) {
+		ProcessEventWatchVO vo = new ProcessEventWatchVO();
+		vo.setEventType(oneTask.getTaskId());
+		vo.setCorrelationId(this.businessKey);
+		vo.setRelatedId(delegateExecution.getVariable("relatedId").toString());
+		vo.setProcessId(this.processId);
+		vo.setStatus((int)BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
+		if(bpmnProcessDao!=null)	
+			bpmnProcessDao.saveProcessEventWatch(vo);
+	}
+	
+
+	private void saveBpmnProcessContext(BpmnProcessDao bpmnProcessDao) throws IOException{
+		// TODO Auto-generated method stub
+		ProcessContextVO vo = new ProcessContextVO();
+		vo.setProcessId(this.processId);
+		vo.setProcessContext(serializeMap(delegateExecution.getBaseVariableMap()));
+		vo.setLastUpdateDate(Calendar.getInstance().getTime());
+		if(bpmnProcessDao!=null)
+			bpmnProcessDao.saveProcessContext(vo);
+		
+	}
+	
+	private byte[] serializeMap(Map<String, Object> map) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(map);
+            return bos.toByteArray();
+        }
+    }
 
 	
 	private HashMap<String, Object> getProcessDetails(String processDefinition) {
@@ -205,10 +230,11 @@ public class BpmnProcessRuntime {
 	            String processId = process.getAttribute("id");
 	            String version = process.getAttribute("version");
 	            map.put("ProcessId", processId);
-	            if(version!=null)
+	           
+	            if(version!=null && !version.isEmpty())	            	
 	            	map.put("Version", version);
-	            else
-	            	map.put("Version", null);
+	            else 
+	            	map.put("Version", BpmnProcessEnum.BPMN_PROCESS_VERSION.getValue());
 	        } else {
 	            System.err.println("No BPMN process found in the document.");
 	        }

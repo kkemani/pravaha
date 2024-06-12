@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 @Data
@@ -14,9 +15,9 @@ public class ProcessContextVO implements Serializable {
 
     private byte[] processContext;
 
-    private Calendar createDate;
+    private Date createDate;
 
-    private Calendar lastUpdateDate;
+    private Date lastUpdateDate;
     
     public ProcessContextVO() {
     	

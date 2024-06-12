@@ -107,6 +107,7 @@ public class BpmnExecutionPath {
 		String target = bpmnCfgManager.getSequenceFlowTarget(outgoingId);
 		// check service tasks 
 		BpmnTask bpmnTask = bpmnCfgManager.getNextNode(target);
+		System.out.println("bpmnTask!=null :::: getNodeFromLink::BpmnExecution  "+bpmnTask!=null);
 		if(bpmnTask!=null)
 			return bpmnTask;
 		// check Exclusive Gateways
