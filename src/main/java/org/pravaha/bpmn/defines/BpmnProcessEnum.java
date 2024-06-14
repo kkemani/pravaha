@@ -11,7 +11,7 @@ public enum BpmnProcessEnum {
 	VAR_TYPE_TRANSIENT(3),
 	PROCESS_INTERNAL_TASK(1),
 	PROCESS_EXTERNAL_TASK(2),
-	BPMN_PROCESS_VERSION(1);
+	BPMN_PROCESS_INIT_VERSION(1);
 	
 	
 	 private final Object variableType;

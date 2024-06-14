@@ -141,6 +141,7 @@ public class BpmnProcessRuntime {
 //			System.out.println("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			logger.debug("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			// save into runtime - with endDate
+			sleep();
 			savePRTimeWithEndDate(this.processId,this.bpmnProcessDao);
 			return true;
 		}
@@ -234,7 +235,7 @@ public class BpmnProcessRuntime {
 	            if(version!=null && !version.isEmpty())	            	
 	            	map.put("Version", version);
 	            else 
-	            	map.put("Version", BpmnProcessEnum.BPMN_PROCESS_VERSION.getValue());
+	            	map.put("Version", BpmnProcessEnum.BPMN_PROCESS_INIT_VERSION.getValue());
 	        } else {
 	            System.err.println("No BPMN process found in the document.");
 	        }
@@ -243,5 +244,18 @@ public class BpmnProcessRuntime {
 	    }
 	    return map;
 	}
+	
+	public void sleep() {
+        try {
+            System.out.println("Sleeping for 1 minute...");
+            for(int i = 1; i<=60; i++) {
+            	Thread.sleep(1000);
+            	System.out.println(i);
+            }
+            System.out.println("Awake after 1 minute!");
+        } catch (InterruptedException e) {
+            System.err.println("Sleep interrupted: " + e.getMessage());
+        }
+    }
 
 }
