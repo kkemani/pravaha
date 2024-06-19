@@ -19,6 +19,7 @@ import org.pravaha.bpmn.dataaccess.BpmnProcessDao;
 import org.pravaha.bpmn.defines.BpmnProcessEnum;
 import org.pravaha.bpmn.defines.TaskEnum;
 import org.pravaha.bpmn.model.ProcessContextVO;
+import org.pravaha.bpmn.model.ProcessDefinitionVO;
 import org.pravaha.bpmn.model.ProcessEventWatchVO;
 import org.pravaha.bpmn.model.ProcessRuntimeVO;
 import org.pravaha.bpmn.model.ProcessTaskVO;
@@ -92,6 +93,7 @@ public class BpmnProcessRuntime {
 	}
 
 	public void startProcess() throws BpmnException{
+		saveProcessDefinition(this.bpmnProcessDao);
 		// save a record for RuntimeVO
 		saveProcessRunTime(this.bpmnProcessDao);
 		// iterate through the links and move to the next node
@@ -121,6 +123,27 @@ public class BpmnProcessRuntime {
 	}
 
 
+	private void saveProcessDefinition(BpmnProcessDao bpmnProcessDao) {
+		// TODO Auto-generated method stub
+		ProcessDefinitionVO vo = new ProcessDefinitionVO();
+		String bpmnProcessDef = executionPath.getBpmnCfgManager().getBpmnProcessDefinition();
+		HashMap<String, Object> mapObj = getProcessDetails(bpmnProcessDef);
+		String processName = mapObj.get("ProcessId").toString();
+		String procesVersion = mapObj.get("Version").toString();
+		String processFileName = executionPath.getBpmnCfgManager().getBpmFileName();
+		vo.setProcessName(processName);
+		vo.setProcessFileName(getFileName(processFileName));
+		vo.setProcessVersion(procesVersion);
+		vo = bpmnProcessDao.saveProcessDefintion(vo);
+		
+		
+	}
+	
+	public String getFileName(String filepath) {
+	        String fileName = filepath.substring(filepath.lastIndexOf("\\") + 1);
+	        return fileName;
+	}
+
 	private boolean processOneNode(BpmnTask oneTask) throws BpmnException {
 		if (oneTask instanceof BpmnStartEvent) {
 			return false;
@@ -134,14 +157,13 @@ public class BpmnProcessRuntime {
 			return false;
 		} else if (oneTask instanceof BpmnIntermediateCatchEvent) {
 			saveEventWatchDetails(oneTask, this.bpmnProcessDao);
-//			System.out.println("BpmnProcessRuntime::processOneNode:Found Intemediate Catch Event - stopping flow");
+			System.out.println("BpmnProcessRuntime::processOneNode:Found Intemediate Catch Event - stopping flow");
 			logger.debug("BpmnProcessRuntime::processOneNode:Found Intemediate Catch Event - stopping flow");
 			return true;
 		} else if (oneTask instanceof BpmnEndEvent) {
-//			System.out.println("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
+			System.out.println("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			logger.debug("BpmnProcessRuntime::processOneNode:Found End Event - stopping flow");
 			// save into runtime - with endDate
-			sleep();
 			savePRTimeWithEndDate(this.processId,this.bpmnProcessDao);
 			return true;
 		}
@@ -220,10 +242,11 @@ public class BpmnProcessRuntime {
 	
 	private HashMap<String, Object> getProcessDetails(String processDefinition) {
 	    HashMap<String, Object> map = new HashMap<>();
+	    String replacedPD = processDefinition.replaceAll("camunda:versionTag", "version");
 	    try {
 	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder builder = factory.newDocumentBuilder();
-	        Document document = builder.parse(new InputSource(new StringReader(processDefinition)));
+	        Document document = builder.parse(new InputSource(new StringReader(replacedPD)));
 
 	        NodeList processList = document.getElementsByTagName("bpmn:process");
 	        if (processList.getLength() > 0) {
@@ -244,18 +267,5 @@ public class BpmnProcessRuntime {
 	    }
 	    return map;
 	}
-	
-	public void sleep() {
-        try {
-            System.out.println("Sleeping for 1 minute...");
-            for(int i = 1; i<=60; i++) {
-            	Thread.sleep(1000);
-            	System.out.println(i);
-            }
-            System.out.println("Awake after 1 minute!");
-        } catch (InterruptedException e) {
-            System.err.println("Sleep interrupted: " + e.getMessage());
-        }
-    }
 
 }

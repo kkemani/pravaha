@@ -1,6 +1,7 @@
 package org.pravaha.bpmn.dataaccess;
 
 import org.pravaha.bpmn.model.ProcessContextVO;
+import org.pravaha.bpmn.model.ProcessDefinitionVO;
 import org.pravaha.bpmn.model.ProcessEventWatchVO;
 import org.pravaha.bpmn.model.ProcessRuntimeVO;
 import org.pravaha.bpmn.model.ProcessTaskVO;
@@ -20,6 +21,11 @@ public interface BpmnProcessDao{
 	public void saveProcessTask(ProcessTaskVO processTaskVO);
 	
 	public ProcessContextVO saveProcessContext(ProcessContextVO vo);
+	
+	public ProcessDefinitionVO saveProcessDefintion(ProcessDefinitionVO definitionVO);
+	
+	public ProcessDefinitionVO getProcessDefinition(String processName);
+	
 	
 
 }

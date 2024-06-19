@@ -92,7 +92,6 @@ public class BpmnExecutionPath {
 					// get current task list of outgoing links - will be implemented later as API
 					// will change to list
 			String outgoingId = this.currentTask.getTopOutgoingLink();
-			System.out.println("Outgoing Id : "+outgoingId);
 			logger.debug("getNextNode outgoingId={}  ", outgoingId);
 			if (null != outgoingId) {
 				bpmnTask = getNodeFromLink(outgoingId);
@@ -107,7 +106,6 @@ public class BpmnExecutionPath {
 		String target = bpmnCfgManager.getSequenceFlowTarget(outgoingId);
 		// check service tasks 
 		BpmnTask bpmnTask = bpmnCfgManager.getNextNode(target);
-		System.out.println("bpmnTask!=null :::: getNodeFromLink::BpmnExecution  "+bpmnTask!=null);
 		if(bpmnTask!=null)
 			return bpmnTask;
 		// check Exclusive Gateways
