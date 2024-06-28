@@ -26,6 +26,9 @@ public interface BpmnProcessDao{
 	
 	public ProcessDefinitionVO getProcessDefinition(String processName);
 	
+	public ProcessEventWatchVO getEventByEventTypeAndCorrId(String eventType, String correlationId);
+	
+	public ProcessContextVO getProcessContextByPId(String processId);
 	
 
 }

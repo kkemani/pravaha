@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import lombok.Data;
 
+import org.pravaha.bpmn.configuration.BpmnConfigHolder;
 import org.pravaha.bpmn.configuration.BpmnConfigurationManager;
 import org.pravaha.bpmn.evaluator.ExpressionEvaluator;
 
@@ -15,19 +16,18 @@ import org.pravaha.bpmn.evaluator.ExpressionEvaluator;
 public class BpmnExecutionPath {
 	final static Logger logger = LoggerFactory.getLogger("BpmnExecutionPath");
 
-	protected BpmnConfigurationManager bpmnCfgManager;
+	protected BpmnConfigurationManager bpmnConfigurationManager;
 	protected BpmnTask currentTask;
 
 	public BpmnExecutionPath() {}
-	
-	public BpmnExecutionPath(String bmpnConfigFile) {
-		bpmnCfgManager = new BpmnConfigurationManager(bmpnConfigFile);
-		bpmnCfgManager.initializeProcessConfiguration();
+
+	public void setBpmnConfigurationManager(BpmnConfigurationManager bpmnCfgManager) {
+		this.bpmnConfigurationManager = bpmnCfgManager;
 	}
 	
 
 	public BpmnTask getStartTask() {
-		this.currentTask = bpmnCfgManager.getStartTask();
+		this.currentTask = bpmnConfigurationManager.getStartTask();
 		return this.currentTask;
 	}
 
@@ -48,7 +48,7 @@ public class BpmnExecutionPath {
 			BpmnSequenceFlow noExpSeqFlow = null;
 			for (String oneOutId : outIds) {
 				BpmnSequenceFlow oneBpmnSeqFlow = new BpmnSequenceFlow();
-				oneBpmnSeqFlow = bpmnCfgManager.getBpmnSequenceFlow(oneOutId);
+				oneBpmnSeqFlow = bpmnConfigurationManager.getBpmnSequenceFlow(oneOutId);
 				if (null != oneBpmnSeqFlow) {
 					if (null != oneBpmnSeqFlow.getExpression()) {
 						seqFlows.add(oneBpmnSeqFlow);
@@ -103,9 +103,9 @@ public class BpmnExecutionPath {
 	}
 
 	private BpmnTask getNodeFromLink(String outgoingId) {
-		String target = bpmnCfgManager.getSequenceFlowTarget(outgoingId);
+		String target = bpmnConfigurationManager.getSequenceFlowTarget(outgoingId);
 		// check service tasks 
-		BpmnTask bpmnTask = bpmnCfgManager.getNextNode(target);
+		BpmnTask bpmnTask = bpmnConfigurationManager.getNextNode(target);
 		if(bpmnTask!=null)
 			return bpmnTask;
 		// check Exclusive Gateways

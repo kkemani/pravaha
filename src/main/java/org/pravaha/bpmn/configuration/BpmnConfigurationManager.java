@@ -13,6 +13,9 @@ import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import lombok.Data;
+
 import org.pravaha.bpmn.defines.TaskEnum;
 import org.pravaha.bpmn.engine.BpmnIntermediateCatchEvent;
 import org.pravaha.bpmn.engine.BpmnEndEvent;
@@ -22,6 +25,7 @@ import org.pravaha.bpmn.engine.BpmnServiceTask;
 import org.pravaha.bpmn.engine.BpmnStartEvent;
 import org.pravaha.bpmn.engine.BpmnTask;
 
+@Data
 public class BpmnConfigurationManager {
 
 	final static Logger logger = LoggerFactory.getLogger("BpmnLogger");
@@ -30,10 +34,10 @@ public class BpmnConfigurationManager {
 
 	protected Document smxProcessConfig = null;
 	protected Element processDefinition = null;
-	protected BpmnTask curExecutionTask = null;
 	public String processName = null;
 	public String processVersion = null;
 	protected String bpmnProcessDefinition = null;
+	
 
 	public static Namespace bpmnNamespace = Namespace.getNamespace(TaskEnum.BPMN_NS.getValue());
 	protected Hashtable<String, BpmnTask> processTaskMap = null;
@@ -270,8 +274,7 @@ public class BpmnConfigurationManager {
 	@Override
 	public String toString() {
 		return "BpmnConfigurationManager [bpmFileName=" + bpmFileName + ", smxProcessConfig=" + smxProcessConfig
-				+ ", processDefinition=" + processDefinition + ", curExecutionTask=" + curExecutionTask
-				+ ", processName=" + processName + ", processVersion=" + processVersion + ", processTaskMap="
+				+ ", processDefinition=" + processDefinition + ", processName=" + processName + ", processVersion=" + processVersion + ", processTaskMap="
 				+ processTaskMap + ", seqFlowMap=" + seqFlowMap + "]";
 	}
 
