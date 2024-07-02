@@ -72,7 +72,6 @@ public class BpmnProcessContext {
 		// iterate through the hashmap passed and set the proc Variables map
 		for (String oneKey : vars.keySet()) {
 			Object oneObj = vars.get(oneKey);
-		//	System.out.println(" Adding variable:" + oneKey + "::" + oneObj);
 			addVariable(oneKey, oneObj);
 		}
 	}
@@ -183,7 +182,7 @@ public class BpmnProcessContext {
 				} else
 					value = Objvalue.toString();
 			} else {
-				System.out.println("BpmnProcessContext :: toString()" + pid + " key=" + key + " :: Objvalue is null.");
+				logger.debug("BpmnProcessContext :: toString() ", pid , " key= " , key , " :: Objvalue is null.");
 			}
 			strbuffer.append("|Key:" + key).append("::Value = " + value);
 		}

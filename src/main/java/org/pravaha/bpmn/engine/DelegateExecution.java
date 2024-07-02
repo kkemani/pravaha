@@ -18,8 +18,6 @@ public class DelegateExecution {
 	}
 	// add as global 
 	public void setVariables(Map<String, Object> varMap) {
-		System.out.println("DelegateExecution:::Setvariables:isNull");
-		System.out.println(varMap!=null);
 		varMap.keySet().forEach(x -> {
 			Object oneObj = varMap.get(x);
 			logger.debug("DelegateExecution::setVariables:oneObj={} ",oneObj);

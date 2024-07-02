@@ -35,7 +35,7 @@ public class BpmnExecutionPath {
 		BpmnTask bpmnTask = null;
 		if (this.currentTask instanceof BpmnStartEvent) {
 			String outgoingId = this.currentTask.getTopOutgoingLink();
-			System.out.println("OutId : "+outgoingId); 
+			logger.info("Outbound Id : ",outgoingId); 
 			if (null != outgoingId) {
 				bpmnTask = getNodeFromLink(outgoingId);
 				this.currentTask = bpmnTask;
@@ -70,7 +70,6 @@ public class BpmnExecutionPath {
 						logger.debug("Expression = {}", oneSeqflow.getExpression().getExpression(),
 								" is correctly Evaluated.");
 						this.currentTask = getNodeFromLink(oneSeqflow.linkId);
-						System.out.println("Current Task : "+this.currentTask);
 						return getNodeFromLink(oneSeqflow.linkId);
 					}
 
@@ -78,14 +77,12 @@ public class BpmnExecutionPath {
 				if (!res) {
 					logger.debug("ExpEval res is false - returning noExp Link={}", noExpSeqFlow.getLinkId());
 					this.currentTask = getNodeFromLink(noExpSeqFlow.linkId);
-					System.out.println("Current Task : "+this.currentTask);
 					return getNodeFromLink(noExpSeqFlow.getLinkId());
 				}
 			} else {
 				logger.debug("List of BpmnSequenceFlow has no expression - returning noExp Link={}",
 						noExpSeqFlow.getLinkId());
 				this.currentTask = getNodeFromLink(noExpSeqFlow.linkId);
-				System.out.println("Current Task : "+this.currentTask);
 				return getNodeFromLink(noExpSeqFlow.getLinkId());
 			}
 		} else { // other tasks

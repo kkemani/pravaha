@@ -84,7 +84,6 @@ public class BpmnConfigurationManager {
 	}
 
 	@SuppressWarnings("deprecation")
-//	public void initializeProcessConfiguration(SMXLogger smxLogger){
 	public void initializeProcessConfiguration() {
 		// build the Document here
 //		String procConfigStr = DataUtility.getDatafromFile(this.bpmFileName);

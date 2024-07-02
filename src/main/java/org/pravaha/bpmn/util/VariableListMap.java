@@ -16,9 +16,8 @@ public class VariableListMap {
 
 		Hashtable<String, Object> hashTablemap = new Hashtable<String, Object>();
 		try {
-			Map<String, String> map = deserializeMap(contextVo.getProcessContext());
+			Map<String, Object> map = deserializeMap(contextVo.getProcessContext());
 			map.forEach((key, value) -> {
-				System.out.println("Key: " + key + ", Value: " + value);
 				hashTablemap.put(key, value);
 			});
 		} catch (ClassNotFoundException e) {
@@ -33,10 +32,10 @@ public class VariableListMap {
 
 	}
 	
-	public static Map<String, String> deserializeMap(byte[] byteArray) throws IOException, ClassNotFoundException {
+	public static Map<String, Object> deserializeMap(byte[] byteArray) throws IOException, ClassNotFoundException {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(byteArray);
 		ObjectInputStream in = new ObjectInputStream(byteIn);
-		return (Map<String, String>) in.readObject();
+		return (Map<String, Object>) in.readObject();
 	}
 	
 	public byte[] serializeMap(Map<String, Object> map) throws IOException {
