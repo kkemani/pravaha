@@ -18,13 +18,13 @@ public interface BpmnProcessDao{
 	
 	public ProcessTaskVO updateTaskStatus(String processId, Long taskId, int taskStatus);
 	
-	public void saveProcessTask(ProcessTaskVO processTaskVO);
+	public ProcessTaskVO saveProcessTask(ProcessTaskVO processTaskVO);
 	
 	public ProcessContextVO saveProcessContext(ProcessContextVO vo);
 	
 	public ProcessDefinitionVO saveProcessDefintion(ProcessDefinitionVO definitionVO);
 	
-	public ProcessDefinitionVO getProcessDefinition(String processName);
+	public ProcessDefinitionVO getProcessDefinition(String processName, String processVersion);
 	
 	public ProcessEventWatchVO getEventByEventTypeAndCorrId(String eventType, String correlationId);
 	

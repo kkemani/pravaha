@@ -44,6 +44,7 @@ public class BpmnProcessRuntime {
 	protected BpmnProcessDao bpmnProcessDao;
 	protected static String processId = null;
 	protected static String businessKey = null;
+	protected static long taskId = 0;
 
 	public static Namespace bpmnNamespace = Namespace.getNamespace(TaskEnum.BPMN_NS.getValue());
 
@@ -118,6 +119,7 @@ public class BpmnProcessRuntime {
 			saveTaskDetails(oneTask);
 			logger.debug("BpmnProcessRuntime::processOneNode:invoking BpmnServiceTask");
 			oneServiceTask.execute(delegateExecution);
+			updateTaskDetailsStatus(oneTask);
 			return false;
 		} else if (oneTask instanceof BpmnExclusiveGwEvent) {
 			return false;
@@ -140,16 +142,18 @@ public class BpmnProcessRuntime {
 			this.bpmnProcessDao = bpmnProcessDao;
 		String processId = getProcessEventWatchVO(eventType, correlationId).getProcessId();
 		String processName = this.bpmnProcessDao.getProcessRunTime(processId).getProcessName();
-		String processFileName = this.bpmnProcessDao.getProcessDefinition(processName).getProcessFileName();
+		String processVersion = this.bpmnProcessDao.getProcessRunTime(processId).getProcessVer();
+		String processFileName = this.bpmnProcessDao.getProcessDefinition(processName, processVersion)
+				.getProcessFileName();
 		String file = "C:\\Users\\bablu\\Downloads\\" + processFileName;
 		BpmnConfigurationManager bpmnCfgManager = setBpmnConfigurationManager(file);
 
 		ProcessContextVO contextVo = this.bpmnProcessDao.getProcessContextByPId(processId);
 		VariableListMap variableMap = new VariableListMap();
 		Hashtable<String, Object> hashTablemap = variableMap.getVariableListMap(contextVo);
-		setCurrentTask(hashTablemap,eventType,bpmnCfgManager);
+		setCurrentTask(hashTablemap, eventType, bpmnCfgManager);
 	}
-	
+
 	private BpmnConfigurationManager setBpmnConfigurationManager(String bpmnfile) {
 		BpmnConfigHolder bpmnCfgHolder = BpmnConfigHolder.getInstance();
 		BpmnConfigurationManager bpmnCfgManager = bpmnCfgHolder.getBpmnCfgManager(bpmnfile);
@@ -157,8 +161,9 @@ public class BpmnProcessRuntime {
 		executionPath.setBpmnConfigurationManager(bpmnCfgManager);
 		return bpmnCfgManager;
 	}
-	
-	private void setCurrentTask(Hashtable<String, Object> hashTablemap,String eventType,BpmnConfigurationManager bpmnCfgManager) {
+
+	private void setCurrentTask(Hashtable<String, Object> hashTablemap, String eventType,
+			BpmnConfigurationManager bpmnCfgManager) {
 		delegateExecution = new DelegateExecution();
 		delegateExecution.setVariables(hashTablemap);
 		Hashtable<String, BpmnTask> hashTable = bpmnCfgManager.getProcessTaskMap();
@@ -166,7 +171,6 @@ public class BpmnProcessRuntime {
 		executionPath.setCurrentTask(oneTask);
 	}
 
-	
 	public void resumeProcess() {
 		BpmnTask oneTask = executionPath.getNextNode(delegateExecution);
 		boolean processEndOrWait = false;
@@ -184,6 +188,10 @@ public class BpmnProcessRuntime {
 		}
 		try {
 			saveBpmnProcessContext();
+			ProcessRuntimeVO runTime = this.bpmnProcessDao.getProcessRunTime(this.processId);
+			if (runTime != null)
+				runTime.setStatus((int) BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
+			this.bpmnProcessDao.saveProcessRuntime(runTime);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -191,30 +199,8 @@ public class BpmnProcessRuntime {
 	}
 
 	public ProcessEventWatchVO getProcessEventWatchVO(String eventType, String correlationId) {
-		ProcessEventWatchVO eventVo = new ProcessEventWatchVO();
-		return this.bpmnProcessDao.getEventByEventTypeAndCorrId(eventType, correlationId);
-	}
-
-	public BpmnTask getResumeTask(String eventType, String correlationId) {
-		String processId = getProcessEventWatchVO(eventType, correlationId).getProcessId();
-		String processName = this.bpmnProcessDao.getProcessRunTime(processId).getProcessName();
-		String processFileName = this.bpmnProcessDao.getProcessDefinition(processName).getProcessFileName();
-		String file = "C:\\Users\\bablu\\Downloads\\" + processFileName;
-		BpmnConfigHolder bpmnCfgHolder = BpmnConfigHolder.getInstance();
-		BpmnConfigurationManager bpmnCfgManager = bpmnCfgHolder.getBpmnCfgManager(file);
-		executionPath = new BpmnExecutionPath();
-		executionPath.setBpmnConfigurationManager(bpmnCfgManager);
-
-		ProcessContextVO contextVo = this.bpmnProcessDao.getProcessContextByPId(processId);
-		VariableListMap variableMap = new VariableListMap();
-		Hashtable<String, Object> hashTablemap = variableMap.getVariableListMap(contextVo);
-		delegateExecution = new DelegateExecution();
-		delegateExecution.setVariables(hashTablemap);
-		Hashtable<String, BpmnTask> hashTable = bpmnCfgManager.getProcessTaskMap();
-		BpmnTask oneTask = hashTable.get(eventType);
-		executionPath.setCurrentTask(oneTask);
-		oneTask = executionPath.getNextNode(delegateExecution);
-		return oneTask;
+		ProcessEventWatchVO eventVo = this.bpmnProcessDao.getEventByEventTypeAndCorrId(eventType, correlationId);
+		return eventVo;
 	}
 
 	public void saveTaskDetails(BpmnTask oneTask) {
@@ -225,18 +211,24 @@ public class BpmnProcessRuntime {
 		vo.setTaskType((int) BpmnProcessEnum.PROCESS_INTERNAL_TASK.getValue());
 		vo.setDescription(oneTask.getTaskName());
 		if (this.bpmnProcessDao != null)
-			this.bpmnProcessDao.saveProcessTask(vo);
+			vo = this.bpmnProcessDao.saveProcessTask(vo);
+
+		this.taskId = vo.getTaskId();
+	}
+
+	public void updateTaskDetailsStatus(BpmnTask oneTask) {
+		int status = (int) BpmnProcessEnum.PROCESS_COMPLETED.getValue();
+		this.bpmnProcessDao.updateTaskStatus(this.processId, this.taskId, status);
 	}
 
 	public void saveProcessRunTime() {
 		ProcessRuntimeVO vo = new ProcessRuntimeVO();
 		String bpmnProcessDef = executionPath.getBpmnConfigurationManager().getBpmnProcessDefinition();
 		HashMap<String, Object> mapObj = getProcessDetails(bpmnProcessDef);
-		String id = mapObj.get("Id").toString();
+//		String id = mapObj.get("Id").toString();
 		String version = mapObj.get("Version").toString();
 
 		vo.setProcessName(this.processName);
-//		vo.setBusinessKey("seygen123"); // from where we are getting or where we are generating
 		vo.setStatus((int) BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
 		vo.setProcessVer(this.processVer);
 		if (this.bpmnProcessDao != null)
@@ -248,11 +240,13 @@ public class BpmnProcessRuntime {
 	}
 
 	public void savePRTimeWithEndDate(String processId) {
-		ProcessRuntimeVO vo = new ProcessRuntimeVO();
-		vo = this.bpmnProcessDao.getProcessRunTime(processId);
-		vo.setEndDate(Calendar.getInstance().getTime());
-		if (this.bpmnProcessDao != null)
+		if (this.bpmnProcessDao != null) {
+			ProcessRuntimeVO vo = this.bpmnProcessDao.getProcessRunTime(processId);
+			vo.setEndDate(Calendar.getInstance().getTime());
+			vo.setStatus((int) BpmnProcessEnum.PROCESS_COMPLETED.getValue());
 			vo = this.bpmnProcessDao.saveProcessRuntime(vo);
+		} else
+			logger.debug("BPMN Dao is null ");
 	}
 
 	public void saveEventWatchDetails(BpmnTask oneTask, BpmnProcessDao bpmnProcessDao) {
@@ -262,11 +256,17 @@ public class BpmnProcessRuntime {
 		vo.setRelatedId(delegateExecution.getVariable("relatedId").toString());
 		vo.setProcessId(this.processId);
 		vo.setStatus((int) BpmnProcessEnum.PROCESS_INPROGRESS.getValue());
-		if (this.bpmnProcessDao != null)
+		if (this.bpmnProcessDao != null) {
 			this.bpmnProcessDao.saveProcessEventWatch(vo);
 
-		logger.debug("BpmnProcessRT:::saveEventWatchDetails::CorrelationId: ", vo.getCorrelationId());
+			ProcessRuntimeVO runTime = this.bpmnProcessDao.getProcessRunTime(this.processId);
+			if (runTime != null)
+				runTime.setStatus((int) BpmnProcessEnum.PROCESS_IN_PENDING.getValue());
+			this.bpmnProcessDao.saveProcessRuntime(runTime);
+		}
 
+		logger.debug("BpmnProcessRT:::saveEventWatchDetails::CorrelationId: ", vo.getCorrelationId());
+		System.out.println("BpmnProcessRT:::saveEventWatchDetails::CorrelationId: " + vo.getCorrelationId());
 	}
 
 	private void saveBpmnProcessContext() throws IOException {
@@ -298,16 +298,16 @@ public class BpmnProcessRuntime {
 			vo = bpmnProcessDao.saveProcessDefintion(vo);
 		else
 			logger.info("BPMN Process DAO is null");
-		
+
 	}
 
-	public ProcessDefinitionVO getProcessDefinition(String processName) {
-		return this.bpmnProcessDao.getProcessDefinition(processName) != null
-				? this.bpmnProcessDao.getProcessDefinition(processName)
+	public ProcessDefinitionVO getProcessDefinition(String processName, String processVersion) {
+		return this.bpmnProcessDao.getProcessDefinition(processName, processVersion) != null
+				? this.bpmnProcessDao.getProcessDefinition(processName, processVersion)
 				: null;
 
 	}
-	
+
 	public String getFileName(String filepath) {
 		String fileName = filepath.substring(filepath.lastIndexOf("\\") + 1);
 		return fileName;
@@ -315,7 +315,7 @@ public class BpmnProcessRuntime {
 
 	private HashMap<String, Object> getProcessDetails(String processDefinition) {
 		HashMap<String, Object> map = new HashMap<>();
-		String replacedPD = processDefinition.replaceAll("camunda:versionTag", "version");
+		String replacedPD = processDefinition.replaceAll("camunda:versionTag", "versionTag");
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
@@ -325,7 +325,7 @@ public class BpmnProcessRuntime {
 			if (processList.getLength() > 0) {
 				Element process = (Element) processList.item(0);
 				String id = process.getAttribute("id");
-				String version = process.getAttribute("version");
+				String version = process.getAttribute("versionTag");
 				map.put("Id", id);
 
 				if (version != null && !version.isEmpty())

@@ -37,7 +37,6 @@ public class BpmnConfigurationManager {
 	public String processName = null;
 	public String processVersion = null;
 	protected String bpmnProcessDefinition = null;
-	
 
 	public static Namespace bpmnNamespace = Namespace.getNamespace(TaskEnum.BPMN_NS.getValue());
 	protected Hashtable<String, BpmnTask> processTaskMap = null;
@@ -99,14 +98,17 @@ public class BpmnConfigurationManager {
 		try {
 
 			SAXBuilder builder = new SAXBuilder();
-			bpmnProcessDefinition = bpmnProcessDefinition.replaceAll("camunda:class", "class");
-			smxProcessConfig = builder.build(new java.io.StringReader(bpmnProcessDefinition));
-			processDefinition = smxProcessConfig.getRootElement().getChild(TaskEnum.BPMN_PROCESS_EL.getValue(),
-					bpmnNamespace);
-			processName = processDefinition.getAttributeValue("name");
-			processVersion = "01";
-			loadTasks();
-			initializeSequenceFlowLinks();
+			if (bpmnProcessDefinition != null) {
+				bpmnProcessDefinition = bpmnProcessDefinition.replaceAll("camunda:class", "class");
+				bpmnProcessDefinition = bpmnProcessDefinition.replaceAll("camunda:versionTag", "versionTag");
+				smxProcessConfig = builder.build(new java.io.StringReader(bpmnProcessDefinition));
+				processDefinition = smxProcessConfig.getRootElement().getChild(TaskEnum.BPMN_PROCESS_EL.getValue(),
+						bpmnNamespace);
+				processName = processDefinition.getAttributeValue("name");
+				processVersion = processDefinition.getAttributeValue("versionTag");
+				loadTasks();
+				initializeSequenceFlowLinks();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -149,7 +151,6 @@ public class BpmnConfigurationManager {
 		List<Element> evWatchNodeList = processDefinition.getChildren(TaskEnum.BPMN_WAIT_EV_EL.getValue(),
 				bpmnNamespace);
 		loadWaitEvWatchTasks(evWatchNodeList);
-
 
 	}
 
@@ -197,7 +198,7 @@ public class BpmnConfigurationManager {
 
 	private void loadEndTasks(List<Element> endNodeList) {
 		// TODO Auto-generated method stub
-		
+
 		if (endNodeList == null)
 			return;
 
@@ -273,8 +274,8 @@ public class BpmnConfigurationManager {
 	@Override
 	public String toString() {
 		return "BpmnConfigurationManager [bpmFileName=" + bpmFileName + ", smxProcessConfig=" + smxProcessConfig
-				+ ", processDefinition=" + processDefinition + ", processName=" + processName + ", processVersion=" + processVersion + ", processTaskMap="
-				+ processTaskMap + ", seqFlowMap=" + seqFlowMap + "]";
+				+ ", processDefinition=" + processDefinition + ", processName=" + processName + ", processVersion="
+				+ processVersion + ", processTaskMap=" + processTaskMap + ", seqFlowMap=" + seqFlowMap + "]";
 	}
 
 }
